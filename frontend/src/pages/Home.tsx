@@ -1,16 +1,16 @@
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { defaultProfile } from "@/consts"
 
-const defaultProfile = {
-  name: "Alex Henrique da Silva",
-  imageUrl: "https://github.com/Alek1337.png"
-}
+import { useAuth } from "@/contexts/auth.context"
 
-function App() {
+export default function HomePage() {
+  const { user } = useAuth()
+
   return (
     <>
-      <Header profile={defaultProfile}>
+      <Header user={user ?? defaultProfile}>
       </Header>
 
       <main
@@ -75,5 +75,3 @@ function App() {
     </>
   )
 }
-
-export default App
