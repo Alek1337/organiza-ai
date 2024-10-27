@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String     @id @default(cuid())
+  email      String     @unique
+  phone      String?
+  birthdate  DateTime
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  password   String
+  fullname   String
+  profileUrl String?
+  events     Event[]
+  Invite     Invite[]
+  Location   Location[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events    Event[]
+
+  @@map("event_categories")
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  init        DateTime
+  end         DateTime
+  isPublic    Boolean
+  userId      String
+  locationId  String?
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  location    Location? @relation(fields: [locationId], references: [id])
+  createdBy   User      @relation(fields: [userId], references: [id])
+  invite      Invite[]
+
+  @@map("events")
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+  userId    String
+  events    Event[]
+  createdBy User     @relation(fields: [userId], references: [id])
+
+  @@map("locations")
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  confirmed Boolean
+  event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("invites")
+}
