@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -89,22 +89,32 @@ export default function EventCreatePage() {
     }
   }
 
-  async function fetchCategories() {
+  const fetchCategories = useCallback(async () => {
     try {
       setLocalLoading(true)
       const { data } = await api.get('/events/categories') as { data: Category[] }
       setCategories(data)
     } catch (err) {
+      if (err instanceof AxiosError) {
+        const errToast = toast({
+          title: "Ops! Não foi possível listar as categorias",
+          description: "Tente novamente mais tarde",
+          variant: "destructive"
+        });
 
+        setTimeout(() => {
+          errToast.dismiss()
+        }, 3000)
+        navigate('/')
+      }
     } finally {
       setLocalLoading(false)
     }
-
-  }
+  }, [navigate])
 
   useEffect(() => {
     fetchCategories()
-  }, [])
+  }, [fetchCategories])
 
   return (
     <main className="h-screen flex flex-col">

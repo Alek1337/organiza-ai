@@ -21,6 +21,26 @@ export class EventsService {
       where: {
         ...filterMe,
       },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        init: true,
+        end: true,
+        isPublic: true,
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        createdBy: {
+          select: {
+            id: true,
+            email: true
+          }
+        }
+      }
     });
   }
 

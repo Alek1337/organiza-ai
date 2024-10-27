@@ -10,7 +10,9 @@ export function Header ({ user }: HeaderProps) {
 
   return (
     <header className="flex items-center justify-between p-4 bg-primary text-primary-foreground">
-      <h1 className="text-xl font-bold">Organiza AI</h1>
+      <Link to='/'>
+        <h1 className="text-xl font-bold">Organiza AI</h1>
+      </Link>
 
       <nav className="flex items-center space-x-4 underline">
         <Link to="/" className="text-sm font-medium">Inicio</Link>
