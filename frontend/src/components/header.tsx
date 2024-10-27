@@ -13,14 +13,14 @@ export function Header ({ user }: HeaderProps) {
       <h1 className="text-xl font-bold">Organiza AI</h1>
 
       <nav className="flex items-center space-x-4 underline">
-        <a href="#" className="text-sm font-medium">Inicio</a>
-        <a href="#" className="text-sm font-medium">Meus eventos</a>
-        <a href="#" className="text-sm font-medium">Criar evento</a>
+        <Link to="/" className="text-sm font-medium">Inicio</Link>
+        <Link to="/meus-eventos" className="text-sm font-medium">Meus eventos</Link>
+        <Link to="/criar-evento" className="text-sm font-medium">Criar evento</Link>
 
         <Link to="/eu">
           <Avatar>
             <AvatarImage src={user.profileUrl} />
-            <AvatarFallback>{ initials }</AvatarFallback>
+            <AvatarFallback className="text-black">{ initials }</AvatarFallback>
           </Avatar>
         </Link>
       </nav>

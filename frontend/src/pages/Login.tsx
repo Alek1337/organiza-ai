@@ -4,10 +4,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/auth.context'
+import { AxiosError } from 'axios'
+import { useToast } from '@/hooks/use-toast'
+import { api } from '@/lib/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { toast } = useToast()
+  const { user, handleLogin } = useAuth()
 
+  const [localLoading, setLocalLoading] = useState(false)
   const [isLogin, setIsLogin] = useState(true)
   const [formData, setFormData] = useState({
     emailOrPhone: '',
@@ -24,27 +31,115 @@ export default function LoginPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSubmit (e: React.FormEvent) {
     e.preventDefault()
     if (isLogin) {
       const { emailOrPhone, password } = formData
-      console.log({
-        emailOrPhone,
-        password
-      })
+      try {
+        await handleLogin(emailOrPhone, password)
+        return navigate('/')
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          const { status } = err
+          if (status === 404) {
+            const t = toast({
+              title: "Ops! Não foi possível fazer login",
+              description: "Combinação de email e senha inválida",
+              variant: "destructive",
+            })
 
-      navigate('/')
+            setTimeout(() => {
+              t.dismiss()
+            }, 3000)
+          }
+        }
+      }
     }
 
     const { fullName, email, phone, birthDate, password, confirmPassword } = formData
-    console.log({
-      fullName,
-      email,
-      phone,
-      birthDate,
-      password,
-      confirmPassword
-    })
+
+    if (password.length < 6) {
+      const t = toast({
+        title: "Ops! Senha muito curta",
+        description: "A senha deve ter no mínimo 6 caracteres",
+        variant: "destructive",
+      })
+
+      setTimeout(() => {
+        t.dismiss()
+      }, 3000)
+      return
+    }
+
+    if (password !== confirmPassword) {
+      const t = toast({
+        title: "Ops! Senhas não conferem",
+        description: "As senhas informadas não são iguais",
+        variant: "destructive",
+      })
+      setTimeout(() => {
+        t.dismiss()
+      }, 3000)
+      return
+    }
+
+    try {
+      setLocalLoading(true)
+      await api.post('/users/register', {
+        fullname: fullName,
+        email,
+        phone,
+        birthdate: birthDate,
+        password
+      });
+
+      const t = toast({
+        title: "Usuário criado com sucesso",
+        description: "Agora você pode fazer login",
+      })
+
+      setTimeout(() => {
+        t.dismiss()
+      }, 3000)
+
+      setFormData({
+        emailOrPhone: '',
+        password: '',
+        fullName: '',
+        email: '',
+        phone: '',
+        birthDate: '',
+        confirmPassword: ''
+      })
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 409) {
+          const errorToast = toast({
+            title: err.response.data.message,
+            description: "Já existe um usuário com esse email",
+            variant: "destructive",
+          })
+
+          setTimeout(() => {
+            errorToast.dismiss()
+          }, 3000)
+        }
+        return
+      }
+
+      const errorToast = toast({
+        title: "Ops! Algo deu errado",
+        description: "Não foi possível fazer o registro",
+        variant: "destructive",
+      })
+
+      setTimeout(() => {
+        errorToast.dismiss()
+      }, 3000)
+    } finally {
+      setLocalLoading(false)
+    }
+
     setIsLogin(true)
   }
 
@@ -111,7 +206,6 @@ export default function LoginPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -160,6 +254,7 @@ export default function LoginPage() {
             variant="link"
             className="w-full"
             onClick={() => setIsLogin(!isLogin)}
+            disabled={localLoading}
           >
             {isLogin ? 'Não tem uma conta? Registre-se' : 'Já tem uma conta? Entre'}
           </Button>
