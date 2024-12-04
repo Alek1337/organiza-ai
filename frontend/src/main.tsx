@@ -1,9 +1,11 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import {
-  RouterProvider,
-  createBrowserRouter
+  Routes,
+  Route,
+  BrowserRouter
 } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from './contexts/auth.context'
 import HomePage from './pages/Home.tsx'
@@ -11,33 +13,30 @@ import LoginPage from './pages/Login.tsx'
 import Me from './pages/Me.tsx'
 import MyEventsPage from './pages/MyEvents.tsx'
 import EventCreatePage from './pages/EventCreate.tsx'
+import MyEventDetailPage from './pages/MyEventDetail.tsx'
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <HomePage />,
-  },
-  {
-    path: '/meus-eventos',
-    element: <MyEventsPage />,
-  },
-  {
-    path: '/criar-evento',
-    element: <EventCreatePage />,
-  },
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/eu',
-    element: <Me />,
-  },
-])
+const queryClient = new QueryClient()
 
 createRoot(document.getElementById('root')!).render(
   <AuthProvider>
-    <RouterProvider router={router}/>
-    <Toaster />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+
+          <Route path="/meus-eventos">
+            <Route index element={<MyEventsPage />} />
+            <Route path=":eid" element={<MyEventDetailPage />} />
+          </Route>
+
+          <Route path="/criar-evento" element={<EventCreatePage />} />
+
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/eu" element={<Me />} />
+        </Routes>
+        <Toaster />
+      </BrowserRouter>
+    </QueryClientProvider>
   </AuthProvider>
 )

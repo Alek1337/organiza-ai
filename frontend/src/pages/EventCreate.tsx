@@ -18,6 +18,7 @@ import { api } from '@/lib/api'
 import { AxiosError } from 'axios'
 import { toast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
+import { Checkbox } from '@/components/ui/checkbox'
 
 type Category = { id: string, name: string };
 
@@ -33,8 +34,9 @@ export default function EventCreatePage() {
     description: '',
     public: false,
     dateInit: '',
-    dateEnd: '',
+    dateEnd: null,
   })
+  const [noEnd, setNoEnd] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -51,15 +53,28 @@ export default function EventCreatePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!noEnd && !formData.dateEnd) {
+      const errToast = toast({
+        title: "Ops! Não foi possível criar o evento",
+        description: "Você precisa informar a data de fim do evento, ou selecionar que o mesmo nao possui um final previsto!",
+        variant: "destructive"
+      });
+
+      setTimeout(() => {
+        errToast.dismiss()
+      }, 3000)
+      return
+    }
+
     try {
       setLocalLoading(true)
-      await api.post('/events', {
+      const { data } = await api.post('/events', {
         title: formData.title,
         categoryId: formData.categoryId,
         description: formData.description,
         isPublic: formData.public,
         init: formData.dateInit,
-        end: formData.dateEnd,
+        end: formData.dateEnd || null,
       })
 
       const t = toast({
@@ -71,7 +86,7 @@ export default function EventCreatePage() {
         t.dismiss()
       }, 3000)
 
-      return navigate('/meus-eventos')
+      return navigate(`/meus-eventos/${data.id}`)
     } catch (err) {
       if (err instanceof AxiosError) {
         const errToast = toast({
@@ -187,8 +202,14 @@ export default function EventCreatePage() {
                     placeholder="DD/MM/AAAA"
                     value={formData.dateEnd}
                     onChange={handleInputChange}
-                    required
                   />
+                  <div className="flex space-x-2 items-top">
+                    <Checkbox id="noEnd" checked={noEnd} onCheckedChange={event => setNoEnd(Boolean(event.valueOf()))} />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label htmlFor="noEnd" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Sem fim previto</Label>
+                      <p className="text-sm text-muted-foreground">Assinale essa opcao se o evento nao tem uma data ou horario previsto de fim.</p>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Descrição</Label>

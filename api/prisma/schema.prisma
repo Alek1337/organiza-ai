@@ -39,7 +39,7 @@ model Event {
   title       String
   description String
   init        DateTime
-  end         DateTime
+  end         DateTime?
   isPublic    Boolean
   userId      String
   locationId  String?
@@ -66,14 +66,15 @@ model Location {
 }
 
 model Invite {
-  id        String   @id @default(cuid())
-  eventId   String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  confirmed Boolean
-  event     Event    @relation(fields: [eventId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  id         String    @id @default(cuid())
+  eventId    String
+  userId     String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  rejectedAt DateTime?
+  acceptedAt DateTime?
+  event      Event     @relation(fields: [eventId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
 
   @@map("invites")
 }

@@ -73,4 +73,12 @@ export class UsersService {
       }
     }
   }
+
+  async searchUser(email: string): Promise<{ user: User }> {
+    const user = await this.prisma.user.findFirst({
+      where: { email }
+    })
+
+    return { user }
+  }
 }

@@ -2,10 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { defaultProfile } from "@/consts"
 
 import { useAuth } from "@/contexts/auth.context"
-import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { AxiosError } from 'axios'
 import { toast } from '@/hooks/use-toast'
@@ -77,8 +75,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Header user={user ?? defaultProfile}>
-      </Header>
+      <Header user={user} />
 
       <main
         className="flex flex-col items-center h-screen space-y-4"
@@ -94,7 +91,7 @@ export default function HomePage() {
         <section className="flex flex-col items-center space-y-4 w-2/3">
           <div className="flex flex-col items-center space-y-4 w-full">
             <h2 className="text-3xl font-bold text-left self-start">
-              Explore categorias
+              Procure por categorias
             </h2>
 
             <div className="flex justify-start">

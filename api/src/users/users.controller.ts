@@ -7,6 +7,7 @@ import {
   UseGuards,
   Request,
   Body,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConflictResponse, ApiCookieAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -41,5 +42,12 @@ export class UsersController {
       birthdate,
       phone,
     })
+  }
+
+  @Get('/search')
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  async search(@Request() req: Request, @Query() { email }) {
+    return this.usersService.searchUser(email);
   }
 }

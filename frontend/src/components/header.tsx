@@ -1,11 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User } from "@/types"
 import { Link } from "react-router-dom"
+import { defaultProfile } from "@/consts"
 
 type HeaderProps = {
-  user: User
+  user: User | null
 }
-export function Header ({ user }: HeaderProps) {
+export function Header ({ user: u }: HeaderProps) {
+  const user = u ?? defaultProfile
   const initials = user.fullname.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 
   return (
