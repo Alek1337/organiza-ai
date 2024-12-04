@@ -2,8 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
-  Delete,
   UseGuards,
   Request,
   Body,
@@ -16,6 +14,7 @@ import { UserEntity } from './entity/user.entity';
 import { RegisterUserDTO } from './dto/register.dto';
 import { UserConflictEntity } from './entity/conflict.entity';
 import { User } from 'src/user/user.decorator';
+import { User as UserType } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
@@ -27,8 +26,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
   @ApiOkResponse({ type: UserEntity })
-  async getMe(@User() user: unknown) {
-    return user;
+  async getMe(@User() user: UserType) {
+    return this.usersService.getMe(user)
   }
 
   @Post('/register')

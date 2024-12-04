@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { Request } from 'express'
 import type { User as UserType } from '@prisma/client';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { User } from 'src/user/user.decorator';
 import { CreateEventDTO } from './dto/create.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
+import { AnswerInviteDto } from './dto/answer-invite.dto';
 
 @Controller('events')
 export class EventsController {
@@ -24,18 +26,18 @@ export class EventsController {
   ) {}
   @Get()
   @HttpCode(200)
-  async listEvents(@Query() { skip, take, orderBy }) {
+  async listEvents(@Query() { skip, take, orderBy, categories }) {
     skip = skip ? parseInt(skip) : undefined;
     take = take ? parseInt(take) : undefined;
-    return await this.eventsService.listEvents({ skip, take, orderBy, me: false });
+    return await this.eventsService.listEvents({ skip, take, orderBy, categories, me: false });
   }
 
-  @Get()
+  @Get("mine")
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
-  async listUserEvents(@Query() { skip, take, orderBy }, @User() user: UserType) {
-    skip = skip ? parseInt(skip) : undefined;
-    take = take ? parseInt(take) : undefined;
+  async listUserEvents(@Query() { page, limit, orderBy }, @User() user: UserType) {
+    const skip = page ? parseInt(page) : undefined;
+    const take = limit ? parseInt(page) : undefined;
     return await this.eventsService.listEvents({ skip, take, orderBy, me: true }, user);
   }
 
@@ -47,8 +49,9 @@ export class EventsController {
 
   @Get(':eventId')
   @HttpCode(200)
-  async getEvent(@Param('eventId') eventId: string) {
-    return await this.eventsService.getEvent(eventId);
+  @UseGuards(JwtAuthGuard)
+  async getEvent(@User() user: UserType, @Param('eventId') eventId: string) {
+    return await this.eventsService.detailEvent(user, eventId);
   }
 
   @Post()
@@ -63,5 +66,12 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   async inviteUser(@User() user: UserType, @Body() inviteRelatedData: InviteUserDto) {
     return await this.eventsService.inviteUser(user, inviteRelatedData);
+  }
+
+  @Patch('invite/answer')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async answerInvite(@User() user: UserType, @Body() answerInviteData: AnswerInviteDto) {
+    return this.eventsService.answerInvite(user, answerInviteData);
   }
 }

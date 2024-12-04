@@ -36,8 +36,8 @@ export default function MyEventsPage() {
   const fetchMyEvents = useCallback(async function fetchEvents() {
     try {
       setLocalLoading(true)
-      const { data } = await api.get('/events/mine') as { data: { events: Events[] } }
-      setEvents(data.events)
+      const { data } = await api.get('/events?me=true') as { data: Events[] }
+      setEvents(data)
     } catch (err) {
       if (err instanceof AxiosError) {
         const errToast = toast({
@@ -75,21 +75,6 @@ export default function MyEventsPage() {
       <Header user={user ?? defaultProfile}/>
       <Loading />
     </>
-  }
-
-  if (events.length === 0) {
-    return (
-      <>
-        <Header user={user ?? defaultProfile}/>
-        <section className="container mx-auto p-4 flex flex-col flex-1 items-center justify-center">
-          <div className="flex flex-col items-center">
-            <h1>Nenhum evento criado por voce!</h1>
-            <p>Crie seu primeiro evento no botao abaixo</p>
-            <Link to="/criar-evento" className="bg-primary text-white px-3 py-2 rounded">Criar evento</Link>
-          </div>
-        </section>
-      </>
-    )
   }
 
   return (

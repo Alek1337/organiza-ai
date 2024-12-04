@@ -34,7 +34,7 @@ export default function EventCreatePage() {
     description: '',
     public: false,
     dateInit: '',
-    dateEnd: null,
+    dateEnd: '',
   })
   const [noEnd, setNoEnd] = useState(false)
 

@@ -1,7 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { User } from '@/types';
 import { api } from '@/lib/api';
-import { useNavigate } from 'react-router-dom';
 
 type Props = {
   children?: ReactNode;
@@ -81,6 +80,14 @@ export const AuthProvider = ({ children }: Props) => {
 
   useEffect(() => {
     fetchMe();
+
+    const interval = setInterval(() => {
+      fetchMe()
+    }, 60_000);
+
+    return () => {
+      clearInterval(interval)
+    }
   }, []);
 
   return (

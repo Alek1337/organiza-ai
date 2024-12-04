@@ -23,6 +23,27 @@ export class UsersService {
     });
   }
 
+  async getMe(user: User) {
+    return this.prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        Invite: {
+          where: {
+            event: {
+              OR: [
+                { end: { gte: new Date() } },
+                { end: null }
+              ]
+            }
+          },
+          include: {
+            event: true
+          }
+        }
+      }
+    })
+  }
+
   async findByEmailAndPassword(email: string, password: string) {
     const hashedPassword = hashPassword(password);
 

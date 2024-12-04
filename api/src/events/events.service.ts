@@ -1,8 +1,9 @@
-import { ForbiddenException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import type { User as UserType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateEventDTO } from './dto/create.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
+import { AnswerInviteDto } from './dto/answer-invite.dto';
 
 function validateEmail(email: string) {
   return String(email)
@@ -16,10 +17,11 @@ export class EventsService {
     private readonly prismaService: PrismaService,
   ) { }
 
-  async listEvents(params: { skip?: number; take?: number, orderBy?: string, me?: boolean }, user: UserType = null) {
+  async listEvents(params: { skip?: number; take?: number, orderBy?: string, categories?: string, me?: boolean }, user: UserType = null) {
     const { skip, take, orderBy, me } = params
+    const categories = params.categories ? params.categories.split(',') : null
 
-    const filterMe = me ? { userId: user.id } : {};
+    const filterMe = me ? { userId: user.id } : { };
 
     const events = await this.prismaService.event.findMany({
       skip: params.skip,
@@ -27,6 +29,13 @@ export class EventsService {
       // orderBy: params.orderBy,
       where: {
         ...filterMe,
+        OR: [
+          { end: { gte: new Date() } },
+          { end: null }
+        ],
+        ...(categories !== null ? { categoryId: {
+          in: categories
+        } } : {})
       },
       select: {
         id: true,
@@ -50,11 +59,11 @@ export class EventsService {
       }
     });
 
-    return events ?? []
+    return { events: events ?? [] }
   }
 
-  async getEvent(eventId: string) {
-    return this.prismaService.event.findUnique({
+  async detailEvent(user: UserType, eventId: string) {
+    const event = await this.prismaService.event.findUnique({
       where: {
         id: eventId
       },
@@ -93,6 +102,11 @@ export class EventsService {
         }
       }
     })
+
+    if (event.createdBy.id !== user.id)
+      throw new ForbiddenException('Você não tem permissão para visualizar este evento');
+
+    return event
   }
 
   async createEvent({ title, description, init, end, isPublic, categoryId }: CreateEventDTO, user: UserType) {
@@ -168,5 +182,33 @@ export class EventsService {
       }
     });
     return categories ?? []
+  }
+
+  async answerInvite(user: UserType, answerData: AnswerInviteDto) {
+    if (answerData.answer !== "deny" && answerData.answer !== "accept") {
+      throw new BadRequestException('Resposta inválida');
+    }
+    const invite = await this.prismaService.invite.findFirst({
+      where: {
+        id: answerData.inviteId,
+      }
+    });
+
+    if (!invite || invite.userId !== user.id) {
+      throw new ForbiddenException('Você não tem permissão para responder este convite');
+    }
+
+    if (invite.acceptedAt || invite.rejectedAt) {
+      throw new UnprocessableEntityException('Convite já respondido');
+    }
+
+    const updatedInvite = await this.prismaService.invite.update({
+      where: {
+        id: invite.id
+      },
+      data: {
+        [answerData.answer === "accept" ? "acceptedAt" : "rejectedAt"]: new Date()
+      }
+    });
   }
 }

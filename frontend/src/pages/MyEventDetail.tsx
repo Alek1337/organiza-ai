@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { Loader2Icon, LockIcon, CheckIcon, XIcon, CircleAlertIcon, CopyIcon } from "lucide-react"
-import { useParams } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useNavigate, useParams } from "react-router-dom"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Header } from "@/components/header"
 import { useAuth } from "@/contexts/auth.context"
 import { api } from "@/lib/api"
@@ -21,6 +21,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
+import axios from "axios"
 
 type Event = {
   id: string
@@ -44,17 +45,47 @@ async function fetchEvent(eid: string) {
 }
 
 export default function MyEventDetailPage() {
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
   const { eid } = useParams()
   const { user } = useAuth()
 
-  const { isPending, data: event } = useQuery<Event>({
+  const { isPending, data: event, isError, error } = useQuery<Event>({
     queryKey: ["event", eid],
     queryFn: () => fetchEvent(eid!),
+    retry(failureCount, error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          toast({
+            title: "Você não tem permissão para detalhar este evento",
+            variant: "destructive",
+          })
+          navigate("/meus-eventos", { replace: true })
+          return false
+        }
+      }
+      return failureCount < 2
+    }
   })
 
-  function updateInvites (newInvite) {
-    console.log("new invite", newInvite)
+  function updateInvites() {
+    queryClient.refetchQueries({
+      queryKey: ["event", eid!]
+    })
   }
+
+  useEffect(() => {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        toast({
+          title: "Você não tem permissão para detalhar este evento",
+          variant: "destructive",
+        })
+        return navigate("/meus-eventos", { replace: true })
+      }
+    }
+  }, [isError, error, navigate, toast])
 
   if (isPending) {
     return (
@@ -80,25 +111,22 @@ export default function MyEventDetailPage() {
         <Card className="p-6">
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{event.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {event.title}
+              </h1>
 
               <div className="flex items-center space-x-2 text-sm text-gray-500 mt-2">
-                {
-                  event.isPublic
-                    ? (
-                      <>
-                        <span>Evento público</span>
-                      </>
-                    )
-                    : (
-                      <>
-                        <LockIcon />
-                        <span>Evento privado</span>
-                      </>
-                    )
-                }
+                {event.isPublic ? (
+                  <>
+                    <span>Evento público</span>
+                  </>
+                ) : (
+                  <>
+                    <LockIcon />
+                    <span>Evento privado</span>
+                  </>
+                )}
               </div>
-
             </div>
 
             <div className="flex flex-col gap-2">
@@ -113,13 +141,17 @@ export default function MyEventDetailPage() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center text-gray-600">
                 <span className="font-semibold">Início:</span>
-                <span className="ml-2">{new Date(event.init).toLocaleDateString()}</span>
+                <span className="ml-2">
+                  {new Date(event.init).toLocaleDateString()}
+                </span>
               </div>
               {event.end && (
                 <div className="flex items-center text-gray-600">
                   <span className="font-semibold">Fim:</span>
                   <span className="ml-2">
-                    {event.end ? new Date(event.end).toLocaleDateString() : "Sem fim previsto"}
+                    {event.end
+                      ? new Date(event.end).toLocaleDateString()
+                      : "Sem fim previsto"}
                   </span>
                 </div>
               )}
@@ -127,16 +159,19 @@ export default function MyEventDetailPage() {
 
             <div>
               <h2 className="text-xl font-semibold mb-2">Descrição</h2>
-              <p className="text-gray-600 whitespace-pre-wrap">{event.description}</p>
+              <p className="text-gray-600 whitespace-pre-wrap">
+                {event.description}
+              </p>
             </div>
 
             <section>
               <div className="flex justify-between">
-                <h2 className="text-xl font-semibold mb-4">Participantes</h2>
-                {
-                  event.isPublic ? <ShareDialog id={event.id} /> : <InviteDialog eventId={event.id} onInvite={updateInvites} />
-                }
-
+                <h2 className="text-xl font-semibold mb-4">Convidades</h2>
+                {event.isPublic ? (
+                  <ShareDialog id={event.id} />
+                ) : (
+                  <InviteDialog eventId={event.id} onInvite={updateInvites} />
+                )}
               </div>
 
               {event.invite.length > 0 && (
@@ -144,7 +179,7 @@ export default function MyEventDetailPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {event.invite.map((invite) => (
                       <div
-                        key={invite.id}
+                        key={invite.user.id}
                         className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
                       >
                         <Avatar className="h-10 w-10">
@@ -152,22 +187,40 @@ export default function MyEventDetailPage() {
                             {invite.user.fullname[0].toUpperCase()}
                           </div>
                         </Avatar>
-                        <div>
-                          <p className="font-medium">{invite.user.fullname}</p>
-                          <p className="text-sm text-gray-500">{invite.user.email}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium">
+                              {invite.user.fullname}
+                            </p>
+                            {invite.rejectedAt ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Recusado
+                              </span>
+                            ) : invite.acceptedAt ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Aceito
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Pendente
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            {invite.user.email}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-
             </section>
           </div>
         </Card>
       </main>
     </>
-  )
+  );
 }
 
 function ShareDialog({ id }: { id: string }) {
@@ -218,8 +271,8 @@ function InviteDialog({ eventId, onInvite }: { eventId: string, onInvite?: (data
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
   const [isSearching, setIsSearching] = useState(false)
-  const [ isLoading, setIsLoading ] = useState(false)
-  const [ open, setOpen ] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [open, setOpen] = useState(false)
 
   const validateEmail = (email: string) => {
     return String(email)
@@ -285,18 +338,8 @@ function InviteDialog({ eventId, onInvite }: { eventId: string, onInvite?: (data
       })
 
       toast({
-        itemID: "invite-result",
-        title: "Usuário convidado com sucesso",
-        description: (
-          <pre>
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        )
-      })
-
-      toast({
         itemID: "invite",
-        title: "Usuário convidado com sucesso",
+        title: "Convite enviado com sucesso",
         description: "O usuário foi convidado para o evento",
       })
       closeAndClear()
@@ -378,7 +421,7 @@ function InviteDialog({ eventId, onInvite }: { eventId: string, onInvite?: (data
             disabled={!user || isLoading}
           >
             Convidar
-            { isLoading && <Loader2Icon className="ml-1 h-4 w-4 animate-spin" /> }
+            {isLoading && <Loader2Icon className="ml-1 h-4 w-4 animate-spin" />}
           </Button>
         </DialogFooter>
       </DialogContent>
