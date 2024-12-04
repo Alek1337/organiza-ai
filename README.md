@@ -39,7 +39,7 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 * HTML e CSS: Para estrutura e design das páginas.
 * Tailwind: Biblioteca para estilização, escrita de CSS.
 * Shadcn: Biblioteca de componentes React.
-* React-query: Biblioteca para facilidar o gerenciamento de requisicoes e dados requiridos pelo frontend.
+* React-query: Biblioteca para facilitar o gerenciamento de requisições e dados requiridos pelo frontend.
 
 ## Backend
 * Node.js: Framework para construção de aplicações JavaScript para o servidor.
