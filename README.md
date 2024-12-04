@@ -26,23 +26,28 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 6. Testes e Validação
    * Realização de testes unitários e de integração para garantir funcionamento seguro e eficiente.
 
-[Diagrama de Classe.] (TO-BE-ADDED)
+[Diagrama de Classe.]
+<img src="/assets/img/classDiagram.png">
 </br>
-[Fluxo.] (TO-BE-ADDED)
+[Fluxo.]
+<img src="/assets/img/fluxogram.png">
 
 # Tecnologias Utilizadas
 ## Frontend
-* React: React: Biblioteca JavaScript para construção de interfaces.
+* React: Biblioteca JavaScript para construção de interfaces.
+* Vite: Bundler de codigo de aplicacoes React.
 * HTML e CSS: Para estrutura e design das páginas.
-* TO BE ADDED.
-* TO BE ADDED.
-* TO BE ADDED.
+* Tailwind: Biblioteca para estilização, escrita de CSS.
+* Shadcn: Biblioteca de componentes React.
+* React-query: Biblioteca para facilidar o gerenciamento de requisicoes e dados requiridos pelo frontend.
 
 ## Backend
-* Node.js: Plataforma JavaScript para o servidor.
-* TO BE ADDED.
-* TO BE ADDED.
-* TO BE ADDED.
+* Node.js: Framework para construção de aplicações JavaScript para o servidor.
+* Nest.js: Ferramenta para desenvolvimento de aplicações Node.js
+* Prisma: Biblioteca para facilitar a comunicação com o banco de dados (ORM)
+
+## Banco de Dados
+* Postgres: Banco de dados relacional.
 
 ## Teste e Qualidade
 * Jest e React Testing Library: Frameworks de teste para frontend.
@@ -73,7 +78,7 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 
 # Organização do Desenvolvimento
 ## Metodologia
-A metodologia ágil SCRUM será utilizada, com ciclos de entrega contínua e foco nas funcionalidades prioritárias.
+A metodologia ágil SCRUM foi utilizada, com ciclos de entrega contínua e foco nas funcionalidades prioritárias.
 
 ## Pacotes de Entrega
 ### Configuração e Infraestrutura
@@ -91,7 +96,6 @@ A metodologia ágil SCRUM será utilizada, com ciclos de entrega contínua e foc
   * Implementação do chatbot para suporte aos usuários.
   * Segurança com autenticação e criptografia.
 
-## Banco de Dados
 --
 
 Acesso à Aplicação
