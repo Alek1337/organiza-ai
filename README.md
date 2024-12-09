@@ -35,7 +35,7 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 # Tecnologias Utilizadas
 ## Frontend
 * React: Biblioteca JavaScript para construção de interfaces.
-* Vite: Bundler de codigo de aplicacoes React.
+* Vite: Bundler de código de aplicações React.
 * HTML e CSS: Para estrutura e design das páginas.
 * Tailwind: Biblioteca para estilização, escrita de CSS.
 * Shadcn: Biblioteca de componentes React.
@@ -95,10 +95,3 @@ A metodologia ágil SCRUM foi utilizada, com ciclos de entrega contínua e foco 
 ### Chatbot Assistente e Segurança
   * Implementação do chatbot para suporte aos usuários.
   * Segurança com autenticação e criptografia.
-
---
-
-Acesso à Aplicação
-Link para o ambiente de produção e testes: URL da aplicação em produção
-
-## TODO: Adicionar documentação de configuração e utilização da aplicação
