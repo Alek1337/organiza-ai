@@ -39,7 +39,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 
 type Event = {
   id: string;
@@ -498,6 +498,7 @@ function InviteSheet({ eventTitle, eventId, onInvite }: { eventTitle: string, ev
       await api.post(`/events/invite`, {
         eventId: eventId,
         email: user.email,
+        message: inviteMessage,
       });
 
       toast({
@@ -510,6 +511,15 @@ function InviteSheet({ eventTitle, eventId, onInvite }: { eventTitle: string, ev
       if (onInvite) onInvite();
     } catch (err) {
       console.error("error while inviting user", err);
+      if (isAxiosError(err)) {
+        toast({
+          itemID: "invite",
+          title: "Erro ao convidar usuário",
+          description: err?.response?.data?.message || "Tente novamente mais tarde",
+          variant: "destructive",
+        });
+        return
+      }
       toast({
         itemID: "invite",
         title: "Erro ao convidar usuário",
@@ -526,6 +536,7 @@ function InviteSheet({ eventTitle, eventId, onInvite }: { eventTitle: string, ev
     setEmail("");
     setUser(null);
     setError("");
+    setInviteMessage("");
   }
 
   const getInputIcon = () => {

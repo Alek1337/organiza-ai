@@ -69,6 +69,7 @@ model Invite {
   id         String    @id @default(cuid())
   eventId    String
   userId     String
+  message    String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   rejectedAt DateTime?

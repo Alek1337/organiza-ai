@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { EllipsisVertical } from "lucide-react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,7 +19,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast";
@@ -111,17 +109,32 @@ export default function Me() {
             {user?.Invite?.map((invite) => (
               <Card key={invite.id} className="p-4">
                 <div className="flex justify-between">
-                  <div>
+                  <div className="max-w-2/13">
                     <h3 className="font-semibold">{invite.event.title}</h3>
                     <p className="text-sm text-gray-600">
                       {invite.event.description}
                     </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">
-                        {new Date(invite.event.init).toLocaleDateString(
-                          "pt-BR"
-                        )}
-                      </span>
+
+                    <h3 className="font-semibold">Mensagem</h3>
+                    <p className="text-sm text-gray-600">
+                      {invite.message}
+                    </p>
+
+                    <div className="flex flex-col items-start mt-5 font-bold">
+                      <p className="text-sm">
+                        <span>
+                          Data do evento:
+                          <span> </span>{new Date(invite.event.init).toLocaleDateString(
+                            "pt-BR"
+                          )}
+                        </span>
+                        <span className="ml-2">
+                          Horário de início:
+                          <span> </span>{new Date(invite.event.init).toLocaleTimeString(
+                            "pt-BR"
+                          )}
+                        </span>
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center">

@@ -133,7 +133,7 @@ export class EventsService {
     });
   }
 
-  async inviteUser(requestingUser: UserType, { eventId, email: invitedEmail }: InviteUserDto) {
+  async inviteUser(requestingUser: UserType, { eventId, email: invitedEmail, message }: InviteUserDto) {
     const isValidEmail = validateEmail(invitedEmail);
     if (!isValidEmail) {
       throw new UnprocessableEntityException('E-mail inválido');
@@ -173,7 +173,8 @@ export class EventsService {
     const invite = await this.prismaService.invite.create({
       data: {
         eventId,
-        userId: invitedUser.id
+        userId: invitedUser.id,
+        message,
       }
     });
 
@@ -208,7 +209,7 @@ export class EventsService {
       throw new UnprocessableEntityException('Convite já respondido');
     }
 
-    const updatedInvite = await this.prismaService.invite.update({
+    await this.prismaService.invite.update({
       where: {
         id: invite.id
       },
