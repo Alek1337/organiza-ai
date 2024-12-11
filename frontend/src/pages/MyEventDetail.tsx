@@ -1,15 +1,25 @@
-import { useState, useCallback, useEffect } from "react"
-import { Loader2Icon, LockIcon, CheckIcon, XIcon, CircleAlertIcon, CopyIcon } from "lucide-react"
-import { useNavigate, useParams } from "react-router-dom"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Header } from "@/components/header"
-import { useAuth } from "@/contexts/auth.context"
-import { api } from "@/lib/api"
-import { Card } from "@/components/ui/card"
-import { Avatar } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  Loader2Icon,
+  LockIcon,
+  CheckIcon,
+  XIcon,
+  CircleAlertIcon,
+  CopyIcon,
+  Send,
+  MousePointerClick,
+} from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Header } from "@/components/header";
+import { useAuth } from "@/contexts/auth.context";
+import { api } from "@/lib/api";
+import { Card } from "@/components/ui/card";
+import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogTrigger,
@@ -19,39 +29,52 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
-import axios from "axios"
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
 
 type Event = {
-  id: string
-  title: string
-  description: string
-  init: string
-  end: string | null
-  isPublic: boolean
-  category: { id: string; name: string }
+  id: string;
+  title: string;
+  description: string;
+  init: string;
+  end: string | null;
+  isPublic: boolean;
+  category: { id: string; name: string };
   invite: {
-    user: { id: string; fullname: string; email: string },
-    rejectedAt: string | null,
-    acceptedAt: string | null,
-    createdAt: string
-  }[]
-}
+    user: { id: string; fullname: string; email: string };
+    rejectedAt: string | null;
+    acceptedAt: string | null;
+    createdAt: string;
+  }[];
+};
 
 async function fetchEvent(eid: string) {
-  const { data } = await api.get(`/events/${eid}`)
-  return data
+  const { data } = await api.get(`/events/${eid}`);
+  return data;
 }
 
 export default function MyEventDetailPage() {
-  const navigate = useNavigate()
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
-  const { eid } = useParams()
-  const { user } = useAuth()
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { eid } = useParams();
+  const { user } = useAuth();
 
-  const { isPending, data: event, isError, error } = useQuery<Event>({
+  const {
+    isPending,
+    data: event,
+    isError,
+    error,
+  } = useQuery<Event>({
     queryKey: ["event", eid],
     queryFn: () => fetchEvent(eid!),
     retry(failureCount, error) {
@@ -60,19 +83,19 @@ export default function MyEventDetailPage() {
           toast({
             title: "Você não tem permissão para detalhar este evento",
             variant: "destructive",
-          })
-          navigate("/meus-eventos", { replace: true })
-          return false
+          });
+          navigate("/meus-eventos", { replace: true });
+          return false;
         }
       }
-      return failureCount < 2
-    }
-  })
+      return failureCount < 2;
+    },
+  });
 
   function updateInvites() {
     queryClient.refetchQueries({
-      queryKey: ["event", eid!]
-    })
+      queryKey: ["event", eid!],
+    });
   }
 
   useEffect(() => {
@@ -81,11 +104,11 @@ export default function MyEventDetailPage() {
         toast({
           title: "Você não tem permissão para detalhar este evento",
           variant: "destructive",
-        })
-        return navigate("/meus-eventos", { replace: true })
+        });
+        return navigate("/meus-eventos", { replace: true });
       }
     }
-  }, [isError, error, navigate, toast])
+  }, [isError, error, navigate, toast]);
 
   if (isPending) {
     return (
@@ -97,11 +120,11 @@ export default function MyEventDetailPage() {
           </div>
         </main>
       </>
-    )
+    );
   }
 
   if (!event) {
-    return null
+    return null;
   }
 
   return (
@@ -170,7 +193,7 @@ export default function MyEventDetailPage() {
                 {event.isPublic ? (
                   <ShareDialog id={event.id} />
                 ) : (
-                  <InviteDialog eventId={event.id} onInvite={updateInvites} />
+                  <InviteSheet eventTitle={event.title} eventId={event.id} onInvite={updateInvites} />
                 )}
               </div>
 
@@ -261,170 +284,325 @@ function ShareDialog({ id }: { id: string }) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-function InviteDialog({ eventId, onInvite }: { eventId: string, onInvite?: (data: any) => void }) {
-  const { toast } = useToast()
-  const { user: loggedUser } = useAuth()
-  const [user, setUser] = useState<{ email: string; fullname: string } | null>(null)
-  const [email, setEmail] = useState("")
-  const [error, setError] = useState("")
-  const [isSearching, setIsSearching] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [open, setOpen] = useState(false)
+function ChatInvite({
+  eventTitle,
+  onMessagePick,
+}: {
+  eventTitle: string;
+  onMessageGenerated?: (message: string) => void;
+}) {
+  const { toast } = useToast();
+  const conversationRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [conversation, setConversation] = useState<
+    Array<{ role: "user" | "assistant"; content: string }>
+  >([
+    {
+      role: "assistant",
+      content: `Oi! Eu posso te ajudar a criar um convite personalizado para o evento "${eventTitle}". Como gostaria de criar o convite?`,
+    },
+  ]);
 
-  const validateEmail = (email: string) => {
+  async function handleSendMessage() {
+    if (!message.trim() || isLoading) return;
+
+    try {
+      setIsLoading(true);
+      const newConversation = [
+        ...conversation,
+        {
+          role: "user",
+          content: message,
+        },
+      ];
+      setConversation(newConversation);
+      setMessage("");
+      setTimeout(() => {
+        conversationRef.current?.scrollTo(0, conversationRef.current?.scrollHeight);
+      })
+
+      const { data } = await api.post("/events/chat", {
+        conversation: newConversation,
+        eventTitle,
+      });
+
+      const assistantMessage = data.message;
+      setConversation([
+        ...newConversation,
+        {
+          role: "assistant",
+          content: assistantMessage,
+        },
+      ]);
+      setTimeout(() => {
+        conversationRef.current?.scrollTo(0, conversationRef.current?.scrollHeight);
+      })
+    } catch (err) {
+      console.error("error on chat message", err);
+      toast({
+        title: "Erro ao gerar mensagem",
+        description:
+          "Não foi possível conversar com o assistente no momento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <div ref={conversationRef} className="flex-1 max-h-[26rem] overflow-y-auto space-y-4 p-4">
+        {conversation.map((msg, index) => (
+          <div
+            key={index}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"
+              }`}
+          >
+            {msg.role === "user"
+              ? (
+                <div
+                  className="max-w-[80%] rounded-lg p-3 bg-primary text-primary-foreground ml-4"
+                >
+                  {msg.content}
+                </div>
+              )
+              : (
+                <div className="flex items-center w-full">
+                  <div
+                    className="max-w-[80%] rounded-lg p-3 bg-muted mr-4"
+                  >
+                    {msg.content}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    <MousePointerClick
+                      onClick={() => onMessagePick(msg.content)}
+                      className="h-4 w-4 inline-block hover:transform hover:scale-125 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              )
+            }
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex justify-center">
+            <Loader2Icon className="h-6 w-6 animate-spin" />
+          </div>
+        )}
+      </div>
+
+      <div className="border-t p-4">
+        <div className="flex gap-2">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Digite sua mensagem..."
+            className="min-h-16 max-h-16 resize-none"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={isLoading}
+            className="min-h-16 max-h-16"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <p className="mt-1 text-sm text-muted-foreground">Clique no icone de ponteiro para usar como mensagem do convite!</p>
+      </div>
+    </div>
+  );
+}
+
+function InviteSheet({ eventTitle, eventId, onInvite }: { eventTitle: string, eventId: string, onInvite?: () => void }) {
+  const { toast } = useToast();
+  const { user: loggedUser } = useAuth();
+  const [open, setOpen] = useState(false)
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [user, setUser] = useState<{ email: string; fullname: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  function validateEmail(email: string) {
     return String(email)
       .toLowerCase()
-      .match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+      .match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
   }
 
   const searchUser = useCallback(
     async (email: string) => {
       if (!email) {
-        setUser(null)
-        setError("")
-        return
+        setUser(null);
+        setError("");
+        return;
       }
 
       if (!validateEmail(email)) {
-        setUser(null)
-        setError("Email inválido")
-        return
+        setUser(null);
+        setError("Email inválido");
+        return;
       }
 
       if (loggedUser?.email === email) {
-        setUser(null)
-        setError("Você não pode convidar a si mesmo")
-        return
+        setUser(null);
+        setError("Você não pode convidar a si mesmo");
+        return;
       }
 
-      setIsSearching(true)
-      setError("")
+      setIsSearching(true);
+      setError("");
 
       try {
-        const { data } = await api.get(`/users/search?email=${email}`)
-        setUser(data.user)
-        setError("")
+        const { data } = await api.get(`/users/search?email=${email}`);
+        setUser(data.user);
+        setError("");
       } catch (error) {
-        console.error("error while searching user", error)
-        setUser(null)
-        setError("Usuário não encontrado")
+        console.error("error while searching user", error);
+        setUser(null);
+        setError("Usuário não encontrado");
       } finally {
-        setIsSearching(false)
+        setIsSearching(false);
       }
     },
     [loggedUser]
-  )
+  );
 
   useEffect(() => {
-    setUser(null)
+    setUser(null);
     const timer = setTimeout(() => {
-      searchUser(email)
-    }, 500)
+      searchUser(email);
+    }, 500);
 
-    return () => clearTimeout(timer)
-  }, [email, searchUser])
+    return () => clearTimeout(timer);
+  }, [email, searchUser]);
 
   async function inviteUser() {
-    if (!user) return
+    if (!user) return;
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
-      const { data } = await api.post(`/events/invite`, {
+      await api.post(`/events/invite`, {
         eventId: eventId,
         email: user.email,
-      })
+      });
 
       toast({
         itemID: "invite",
         title: "Convite enviado com sucesso",
         description: "O usuário foi convidado para o evento",
-      })
-      closeAndClear()
+      });
+      closeAndClear();
 
-      if (onInvite)
-        onInvite(data)
+      if (onInvite) onInvite();
     } catch (err) {
-      console.error("error while inviting user", err)
+      console.error("error while inviting user", err);
       toast({
         itemID: "invite",
         title: "Erro ao convidar usuário",
         description: "Tente novamente mais tarde",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   function closeAndClear() {
-    setOpen(false)
-    setEmail("")
-    setUser(null)
-    setError("")
+    setOpen(false);
+    setEmail("");
+    setUser(null);
+    setError("");
   }
 
   const getInputIcon = () => {
-    if (!email) return <CircleAlertIcon className="h-4 w-4 text-gray-400" />
-    if (isSearching) return <Loader2Icon className="h-4 w-4 animate-spin" />
-    if (user) return <CheckIcon className="h-4 w-4 text-green-500" />
-    return <XIcon className="h-4 w-4 text-red-500" />
-  }
+    if (!email) return <CircleAlertIcon className="h-4 w-4 text-gray-400" />;
+    if (isSearching) return <Loader2Icon className="h-4 w-4 animate-spin" />;
+    if (user) return <CheckIcon className="h-4 w-4 text-green-500" />;
+    return <XIcon className="h-4 w-4 text-red-500" />;
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Criar convite</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Criar convite</DialogTitle>
-          <DialogDescription>
-            A pessoa convidada receberá um convite para o evento que podera ser aceito ou negado.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex items-center space-x-2">
-          <div className="grid flex-1 gap-2">
-            <Label htmlFor="email">E-mail</Label>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline">Convidar</Button>
+      </SheetTrigger>
+      <SheetContent className="w-[700px] sm:w-[840px] sm:max-w-sm md:max-w-lg flex flex-col">
+        <SheetHeader>
+          <SheetTitle>Convidar para {eventTitle}</SheetTitle>
+          <SheetDescription>
+            Envie um convite personalizado para seu evento
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 flex flex-col mt-4">
+          <div className="space-y-4 mb-4">
             <div className="flex items-center space-x-2">
-              <div className="relative flex-1">
-                <Input
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={error ? "border-red-500" : ""}
-                />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  {getInputIcon()}
+              <div className="grid flex-1 gap-2">
+                <Label htmlFor="email">E-mail</Label>
+                <div className="flex items-center space-x-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={error ? "border-red-500" : ""}
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      {getInputIcon()}
+                    </div>
+                  </div>
+                </div>
+                <div className="h-[1ch]">
+                  {error && <p className="text-sm text-red-500">{error}</p>}
+                  {user && (
+                    <p className="text-sm text-green-500">
+                      Esse convite será enviado para {user.fullname}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
-            <div className="h-[1ch]">
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              {user && <p className="text-sm text-green-500">
-                Esse convite será enviado para {user.fullname}
-              </p>}
-            </div>
+            <Textarea
+              value={inviteMessage}
+              onChange={(e) => setInviteMessage(e.target.value)}
+              placeholder="Mensagem do convite"
+              className="resize-none h-28"
+            />
           </div>
-        </div>
-        <DialogFooter className="sm:justify-end">
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Cancelar
-            </Button>
-          </DialogClose>
-          <Button
-            type="button"
-            onClick={inviteUser}
-            disabled={!user || isLoading}
-          >
-            Convidar
-            {isLoading && <Loader2Icon className="ml-1 h-4 w-4 animate-spin" />}
+
+          <div className="flex-1 border rounded-lg overflow-hidden">
+            <ChatInvite
+              eventTitle={eventTitle}
+              onMessagePick={(message) => setInviteMessage(message)}
+            />
+          </div>
+
+          <Button variant="outline" className="mt-4" onClick={closeAndClear}>Cancelar</Button>
+          <Button className="mt-1" disabled={isSearching || isLoading} onClick={inviteUser}>
+            Enviar Convite
+            {isLoading &&
+              <>
+                <span>Enviando</span>
+                <Loader2Icon className="ml-1 h-4 w-4 animate-spin" />
+              </>
+            }
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
 }

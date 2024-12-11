@@ -18,6 +18,26 @@ import { User } from 'src/user/user.decorator';
 import { CreateEventDTO } from './dto/create.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { AnswerInviteDto } from './dto/answer-invite.dto';
+import { IsArray, IsString, Validate, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class Message {
+  @IsString()
+  role: 'user' | 'assistant'
+
+  @IsString()
+  content: string
+}
+
+class ConversationDto  {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Message)
+  conversation: Message[]
+
+  @IsString()
+  eventTitle: string
+}
 
 @Controller('events')
 export class EventsController {
@@ -73,5 +93,13 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   async answerInvite(@User() user: UserType, @Body() answerInviteData: AnswerInviteDto) {
     return this.eventsService.answerInvite(user, answerInviteData);
+  }
+
+  @Post('chat')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async chat(@Body() conversation: ConversationDto) {
+    const message = await this.eventsService.chat(conversation);
+    return { message }
   }
 }

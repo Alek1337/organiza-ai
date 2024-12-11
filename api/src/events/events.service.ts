@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateEventDTO } from './dto/create.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { AnswerInviteDto } from './dto/answer-invite.dto';
+import OpenAI from 'openai';
 
 function validateEmail(email: string) {
   return String(email)
@@ -13,9 +14,14 @@ function validateEmail(email: string) {
 
 @Injectable()
 export class EventsService {
+  private readonly openai: OpenAI;
   constructor(
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
 
   async listEvents(params: { skip?: number; take?: number, orderBy?: string, categories?: string, me?: boolean }, user: UserType = null) {
     const { skip, take, orderBy, me } = params
@@ -210,5 +216,26 @@ export class EventsService {
         [answerData.answer === "accept" ? "acceptedAt" : "rejectedAt"]: new Date()
       }
     });
+  }
+
+
+  async chat(conversationDto: any): Promise<string> {
+    const { conversation, eventTitle } = conversationDto;
+
+    const response = await this.openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: `Você é um assistente especializado em criar convites personalizados para eventos.
+O evento atual é "${eventTitle}". Seja criativo e amigável nas respostas.`
+        },
+        ...conversation
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    })
+
+    return response.choices[0].message.content || "Desculpe, não consegui gerar um convite no momento."
   }
 }
