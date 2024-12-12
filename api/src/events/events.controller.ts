@@ -10,11 +10,10 @@ import {
   Param,
   Patch,
 } from '@nestjs/common';
-import { Request } from 'express'
 import type { User as UserType } from '@prisma/client';
 import { EventsService } from './events.service';
-import { JwtAuthGuard } from 'src/auth/auth.guard';
-import { User } from 'src/user/user.decorator';
+import { JwtAuthGuard } from '../auth/auth.guard';
+import { User } from '../user/user.decorator';
 import { CreateEventDTO } from './dto/create.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { AnswerInviteDto } from './dto/answer-invite.dto';
@@ -46,10 +45,10 @@ export class EventsController {
   ) {}
   @Get()
   @HttpCode(200)
-  async listEvents(@Query() { skip, take, orderBy, categories }) {
+  async listEvents(@Query() { skip, take, orderBy, categories, meId }) {
     skip = skip ? parseInt(skip) : undefined;
     take = take ? parseInt(take) : undefined;
-    return await this.eventsService.listEvents({ skip, take, orderBy, categories, me: false });
+    return await this.eventsService.listEvents({ skip, take, orderBy, categories, me: false, meId });
   }
 
   @Get("mine")
@@ -93,6 +92,13 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   async answerInvite(@User() user: UserType, @Body() answerInviteData: AnswerInviteDto) {
     return this.eventsService.answerInvite(user, answerInviteData);
+  }
+
+  @Post(':eventId/confirm')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async confirmPresence(@User() user: UserType, @Param("eventId") eventId: string) {
+    return this.eventsService.confirmPresence(user, eventId);
   }
 
   @Post('chat')

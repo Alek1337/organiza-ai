@@ -1,6 +1,6 @@
-import { BadRequestException, ForbiddenException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnprocessableEntityException, NotFoundException } from '@nestjs/common';
 import type { User as UserType } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDTO } from './dto/create.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { AnswerInviteDto } from './dto/answer-invite.dto';
@@ -23,11 +23,11 @@ export class EventsService {
     })
   }
 
-  async listEvents(params: { skip?: number; take?: number, orderBy?: string, categories?: string, me?: boolean }, user: UserType = null) {
+  async listEvents(params: { skip?: number; take?: number, orderBy?: string, categories?: string, me?: boolean, meId?: string }, user: UserType = null) {
     const { skip, take, orderBy, me } = params
     const categories = params.categories ? params.categories.split(',') : null
 
-    const filterMe = me ? { userId: user.id } : { };
+    const filterMe = me ? { userId: user.id } : {};
 
     const events = await this.prismaService.event.findMany({
       skip: params.skip,
@@ -35,13 +35,26 @@ export class EventsService {
       // orderBy: params.orderBy,
       where: {
         ...filterMe,
-        OR: [
-          { end: { gte: new Date() } },
-          { end: null }
+        AND: [
+          {
+            OR: [
+              { end: { gte: new Date() } },
+              { end: null },
+            ],
+          },
+          {
+            OR: [
+              { isPublic: true },
+              ...(params.meId ? [{ invite: { some: { userId: params.meId }} }] : []),
+              ...(params.meId ? [{ userId: params.meId }] : [])
+            ]
+          }
         ],
-        ...(categories !== null ? { categoryId: {
-          in: categories
-        } } : {})
+        ...(categories !== null ? {
+          categoryId: {
+            in: categories
+          }
+        } : {})
       },
       select: {
         id: true,
@@ -238,5 +251,38 @@ O evento atual é "${eventTitle}". Seja criativo e amigável nas respostas.`
     })
 
     return response.choices[0].message.content || "Desculpe, não consegui gerar um convite no momento."
+  }
+
+  async confirmPresence(user: any, eventId: string) {
+    const event = await this.prismaService.event.findUnique({
+      where: {
+        id: eventId
+      }
+    })
+
+    if (!event) {
+      throw new NotFoundException('Evento não encontrado');
+    } 
+
+    if (!event.isPublic)
+      throw new UnprocessableEntityException("evento privado")
+  
+    const invite = await this.prismaService.invite.findFirst({
+      where: { eventId, userId: user.id }
+    })
+
+    if (invite) {
+      return { message: "ok" }
+    }
+
+    await this.prismaService.invite.create({
+      data: {
+        eventId,
+        userId: user.id,
+        acceptedAt: new Date()
+      }
+    })
+
+    return { message: "ok" }
   }
 }

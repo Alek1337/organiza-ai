@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ export default function HomePage() {
           : "";
 
         const { data } = (await api.get(
-          `/events?page=${pageNumber}&limit=${ITEMS_PER_PAGE}${categoryParams}`
+          `/events?page=${pageNumber}&limit=${ITEMS_PER_PAGE}${categoryParams}&meId=${user?.id ?? ""}`
         )) as {
           data: { events: Event[]; hasMore: boolean };
         };
@@ -76,7 +77,7 @@ export default function HomePage() {
         }
       }
     },
-    [selectedCategories]
+    [selectedCategories, user?.id]
   );
 
   const toggleCategory = (categoryId: string) => {
@@ -106,9 +107,10 @@ export default function HomePage() {
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
+
   useEffect(() => {
     fetchEvents(1);
-  }, [selectedCategories]);
+  }, [selectedCategories, fetchEvents]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -166,7 +168,7 @@ export default function HomePage() {
           <h2 className="text-2xl md:text-3xl font-bold mb-6">Eventos</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {events.map((event) => (
-              <div key={event.id} className="flex flex-col">
+              <Link to={`/evento/${event.id}`} key={event.id} className="flex flex-col">
                 <div className="relative aspect-square rounded-lg overflow-hidden bg-primary mb-3">
                   <img
                     src="/event.jpg"
@@ -177,10 +179,11 @@ export default function HomePage() {
                     {new Date(event.init).toLocaleDateString()}
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-70 text-white">
-                    <p className="font-bold truncate">{event.title}</p>
-                    <p className="text-sm">{event.category.name}</p>
+                    <p className="font-bold truncate text-center">{event.title}</p>
+                    <p className="text-sm text-center">{event.category.name}</p>
                   </div>
                 </div>
+                <p className={`text-center px-2.5 py-0.5 rounded-full text-xs font-medium ${event.isPublic ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{ event.isPublic ? "Público" : "Privado" }</p>
                 <div className="text-sm space-y-1">
                   <p>
                     {`${new Date(event.init).toLocaleTimeString()} ${new Date(
@@ -198,7 +201,7 @@ export default function HomePage() {
                   <p>Cidade: Jaraguá do Sul</p>
                   <p>Local: Universidade Católica</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 

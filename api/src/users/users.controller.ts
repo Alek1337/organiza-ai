@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConflictResponse, ApiCookieAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from 'src/auth/auth.guard';
+import { JwtAuthGuard } from '../auth/auth.guard';
 import { UserEntity } from './entity/user.entity';
 import { RegisterUserDTO } from './dto/register.dto';
 import { UserConflictEntity } from './entity/conflict.entity';
-import { User } from 'src/user/user.decorator';
+import { User } from '../user/user.decorator';
 import { User as UserType } from '@prisma/client';
 
 @Controller('users')

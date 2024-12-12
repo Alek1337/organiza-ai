@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail, IsNotEmpty, IsOptional, IsString, MinLength,
 } from 'class-validator';
-import { IsValidDate } from 'src/validators/data.validator';
+import { IsValidDate } from '../../validators/data.validator';
 
 export class RegisterUserDTO {
   @IsString()

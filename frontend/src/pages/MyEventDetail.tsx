@@ -38,7 +38,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useToast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import axios, { isAxiosError } from "axios";
 
 type Event = {
@@ -189,7 +189,7 @@ export default function MyEventDetailPage() {
 
             <section>
               <div className="flex justify-between">
-                <h2 className="text-xl font-semibold mb-4">Convidades</h2>
+                <h2 className="text-xl font-semibold mb-4">Convidados</h2>
                 {event.isPublic ? (
                   <ShareDialog id={event.id} />
                 ) : (
@@ -217,15 +217,15 @@ export default function MyEventDetailPage() {
                             </p>
                             {invite.rejectedAt ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Recusado
+                                Confite recusado
                               </span>
                             ) : invite.acceptedAt ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Aceito
+                                { event.isPublic ? "Confirmado" : "Convite aceito" }
                               </span>
                             ) : (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Pendente
+                                Convite pendente
                               </span>
                             )}
                           </div>
@@ -266,19 +266,38 @@ function ShareDialog({ id }: { id: string }) {
             </Label>
             <Input
               id="link"
-              defaultValue="https://ui.shadcn.com/docs/installation"
+              defaultValue={window.location.href}
               readOnly
             />
           </div>
           <Button type="submit" size="sm" className="px-3">
             <span className="sr-only">Copy</span>
-            <CopyIcon />
+            <CopyIcon 
+              onClick={() => {
+                navigator.clipboard
+                  .writeText(window.location.href)
+                  .then(() => {
+                    toast({
+                      title: "Link copiado!",
+                      description:
+                        "O link foi copiado para sua área de transferência",
+                    });
+                  })
+                  .catch(() => {
+                    toast({
+                      title: "Erro ao copiar",
+                      description: "Não foi possível copiar o link",
+                      variant: "destructive",
+                    });
+                  });
+              }}
+            />
           </Button>
         </div>
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
             <Button type="button" variant="secondary">
-              Close
+              Fechar
             </Button>
           </DialogClose>
         </DialogFooter>
@@ -566,7 +585,7 @@ function InviteSheet({ eventTitle, eventId, onInvite }: { eventTitle: string, ev
                 <Label htmlFor="email">E-mail</Label>
                 <div className="flex items-center space-x-2">
                   <div className="relative flex-1">
-                    <Input
+P                    <Input
                       id="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
