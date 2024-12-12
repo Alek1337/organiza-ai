@@ -9,11 +9,11 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
       * Criar, editar e excluir eventos.
       * Convidar participantes e gerenciar listas de convidados.
       * Monitorar confirmações de presença e interação dos participantes.
-      * Enviar notificações e atualizações aos convidados.
+      * Enviar atualizações aos convidados.
 3. Painel do Participante
    * Participantes podem:
       * Visualizar e confirmar presença nos eventos.
-      * Receber atualizações e notificações dos organizadores.
+      * Receber atualizações dos organizadores.
       * Interagir com o chatbot para obter informações sobre os eventos.
 4. Chatbot Assistente
    * Suporte automatizado para:
@@ -59,7 +59,7 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 2. Painel do Organizador
    * RF2: Criar, editar, excluir e gerenciar eventos.
    * RF3: Enviar convites e gerenciar presença dos convidados.
-   * RF4: Enviar atualizações e notificações aos convidados.
+   * RF4: Enviar atualizações aos convidados.
 3. Painel do Participante
    * RF5: Visualizar e confirmar presença em eventos.
 4. Chatbot Assistente
@@ -72,7 +72,7 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 3. Usabilidade
    * RNF3: Interface intuitiva e fácil de usar.
 4. Manutenibilidade
-   * RNF4: Código documentado para futuras melhorias.
+   * RNF4: Código limpo e estruturado para futuras melhorias.
 5. Testes e Validação
    * RNF5: Testes unitários e de integração para assegurar o funcionamento.
 
