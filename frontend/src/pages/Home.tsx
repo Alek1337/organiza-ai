@@ -13,6 +13,8 @@ type Category = { id: string; name: string };
 type Event = {
   id: string;
   title: string;
+  description: string;
+  location: string;
   category: Category;
   init: string;
   end: string;
@@ -198,8 +200,11 @@ export default function HomePage() {
                         ).toLocaleDateString()}`
                       : "Sem fim previsto"}
                   </p>
-                  <p>Cidade: Jaraguá do Sul</p>
-                  <p>Local: Universidade Católica</p>
+                  {
+                    event.location && (
+                      <p>Local: {event.location}</p>
+                    )
+                  }
                 </div>
               </Link>
             ))}

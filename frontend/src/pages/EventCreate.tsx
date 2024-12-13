@@ -35,10 +35,11 @@ export default function EventCreatePage() {
     public: false,
     dateInit: '',
     dateEnd: '',
+    location: ''
   })
   const [noEnd, setNoEnd] = useState(false)
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
@@ -72,6 +73,7 @@ export default function EventCreatePage() {
         title: formData.title,
         categoryId: formData.categoryId,
         description: formData.description,
+        location: formData.location,
         isPublic: formData.public,
         init: formData.dateInit,
         end: formData.dateEnd || null,
@@ -216,8 +218,18 @@ export default function EventCreatePage() {
                   <Textarea
                     id="description"
                     name="description"
-                    type="password"
                     value={formData.description}
+                    onChange={handleInputChange}
+                    className="resize-none"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Endereço</Label>
+                  <Textarea
+                    id="location"
+                    name="location"
+                    value={formData.location}
                     onChange={handleInputChange}
                     className="resize-none"
                     required

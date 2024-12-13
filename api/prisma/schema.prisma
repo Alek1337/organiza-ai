@@ -8,18 +8,17 @@ datasource db {
 }
 
 model User {
-  id         String     @id @default(cuid())
-  email      String     @unique
+  id         String   @id @default(cuid())
+  email      String   @unique
   phone      String?
   birthdate  DateTime
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   password   String
   fullname   String
   profileUrl String?
   events     Event[]
   Invite     Invite[]
-  Location   Location[]
 
   @@map("users")
 }
@@ -42,27 +41,13 @@ model Event {
   end         DateTime?
   isPublic    Boolean
   userId      String
-  locationId  String?
+  location    String?
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id])
-  location    Location? @relation(fields: [locationId], references: [id])
   createdBy   User      @relation(fields: [userId], references: [id])
   invite      Invite[]
 
   @@map("events")
-}
-
-model Location {
-  id        String   @id @default(cuid())
-  name      String
-  latitude  Float
-  longitude Float
-  createdAt DateTime @default(now())
-  userId    String
-  events    Event[]
-  createdBy User     @relation(fields: [userId], references: [id])
-
-  @@map("locations")
 }
 
 model Invite {

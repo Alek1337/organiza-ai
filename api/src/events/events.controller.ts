@@ -36,6 +36,9 @@ class ConversationDto  {
 
   @IsString()
   eventTitle: string
+
+  @IsString()
+  eventId: string
 }
 
 @Controller('events')

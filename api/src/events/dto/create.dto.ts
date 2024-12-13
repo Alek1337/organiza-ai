@@ -16,6 +16,11 @@ export class CreateEventDTO {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
+  location: string
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
   categoryId: string
 
   @IsValidDate()

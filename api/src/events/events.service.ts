@@ -27,14 +27,19 @@ export class EventsService {
     const { skip, take, orderBy, me } = params
     const categories = params.categories ? params.categories.split(',') : null
 
-    const filterMe = me ? { userId: user.id } : {};
+    if (me) {
+      const events = await this.prismaService.event.findMany({
+        where: { userId: user.id },
+      });
+
+      return { events: events ?? [] };
+    }
 
     const events = await this.prismaService.event.findMany({
       skip: params.skip,
       take: params.take,
       // orderBy: params.orderBy,
       where: {
-        ...filterMe,
         AND: [
           {
             OR: [
@@ -60,6 +65,7 @@ export class EventsService {
         id: true,
         title: true,
         description: true,
+        location: true,
         init: true,
         end: true,
         isPublic: true,
@@ -128,11 +134,12 @@ export class EventsService {
     return event
   }
 
-  async createEvent({ title, description, init, end, isPublic, categoryId }: CreateEventDTO, user: UserType) {
+  async createEvent({ title, description, init, end, isPublic, categoryId, location }: CreateEventDTO, user: UserType) {
     return this.prismaService.event.create({
       data: {
         title,
         description,
+        location,
         init: new Date(init),
         end: end ? new Date(end) : null,
         isPublic,
@@ -234,15 +241,26 @@ export class EventsService {
 
 
   async chat(conversationDto: any): Promise<string> {
-    const { conversation, eventTitle } = conversationDto;
+    const { conversation, eventTitle, eventId } = conversationDto;
+
+    const event = await this.prismaService.event.findUnique({
+      where: {
+        id: eventId
+      }
+    })
 
     const response = await this.openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: `Você é um assistente especializado em criar convites personalizados para eventos.
-O evento atual é "${eventTitle}". Seja criativo e amigável nas respostas.`
+          content: `
+          Você é um assistente especializado em criar convites personalizados para eventos.
+          O evento atual é "${eventTitle}". Seja criativo e amigável nas respostas.
+          <EventData>
+            ${JSON.stringify(event)}
+          </EventData>
+        `
         },
         ...conversation
       ],
@@ -262,11 +280,11 @@ O evento atual é "${eventTitle}". Seja criativo e amigável nas respostas.`
 
     if (!event) {
       throw new NotFoundException('Evento não encontrado');
-    } 
+    }
 
     if (!event.isPublic)
       throw new UnprocessableEntityException("evento privado")
-  
+
     const invite = await this.prismaService.invite.findFirst({
       where: { eventId, userId: user.id }
     })

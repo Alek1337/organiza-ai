@@ -221,7 +221,7 @@ export default function MyEventDetailPage() {
                               </span>
                             ) : invite.acceptedAt ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                { event.isPublic ? "Confirmado" : "Convite aceito" }
+                                {event.isPublic ? "Confirmado" : "Convite aceito"}
                               </span>
                             ) : (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -272,7 +272,7 @@ function ShareDialog({ id }: { id: string }) {
           </div>
           <Button type="submit" size="sm" className="px-3">
             <span className="sr-only">Copy</span>
-            <CopyIcon 
+            <CopyIcon
               onClick={() => {
                 navigator.clipboard
                   .writeText(window.location.href)
@@ -308,10 +308,12 @@ function ShareDialog({ id }: { id: string }) {
 
 function ChatInvite({
   eventTitle,
+  eventId,
   onMessagePick,
 }: {
-  eventTitle: string;
-  onMessageGenerated?: (message: string) => void;
+  eventTitle: string
+  eventId: string
+  onMessagePick?: (message: string) => void;
 }) {
   const { toast } = useToast();
   const conversationRef = useRef<HTMLDivElement>(null);
@@ -348,6 +350,7 @@ function ChatInvite({
       const { data } = await api.post("/events/chat", {
         conversation: newConversation,
         eventTitle,
+        eventId
       });
 
       const assistantMessage = data.message;
@@ -400,7 +403,11 @@ function ChatInvite({
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     <MousePointerClick
-                      onClick={() => onMessagePick(msg.content)}
+                      onClick={() => {
+                        if (onMessagePick) {
+                          onMessagePick(msg.content!)
+                        }
+                      }}
                       className="h-4 w-4 inline-block hover:transform hover:scale-125 cursor-pointer"
                     />
                   </div>
@@ -568,7 +575,7 @@ function InviteSheet({ eventTitle, eventId, onInvite }: { eventTitle: string, ev
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline">Convidar</Button>
+        <Button>Convidar</Button>
       </SheetTrigger>
       <SheetContent className="w-[700px] sm:w-[840px] sm:max-w-sm md:max-w-lg flex flex-col">
         <SheetHeader>
@@ -585,7 +592,7 @@ function InviteSheet({ eventTitle, eventId, onInvite }: { eventTitle: string, ev
                 <Label htmlFor="email">E-mail</Label>
                 <div className="flex items-center space-x-2">
                   <div className="relative flex-1">
-P                    <Input
+                    <Input
                       id="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -617,12 +624,13 @@ P                    <Input
           <div className="flex-1 border rounded-lg overflow-hidden">
             <ChatInvite
               eventTitle={eventTitle}
+              eventId={eventId}
               onMessagePick={(message) => setInviteMessage(message)}
             />
           </div>
 
           <Button variant="outline" className="mt-4" onClick={closeAndClear}>Cancelar</Button>
-          <Button className="mt-1" disabled={isSearching || isLoading} onClick={inviteUser}>
+          <Button className="mt-1" disabled={isSearching || isLoading || !user} onClick={inviteUser}>
             Enviar Convite
             {isLoading &&
               <>
