@@ -49,7 +49,7 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 * Postgres: Banco de dados relacional.
 
 ## Teste e Qualidade
-* Jest e React Testing Library: Frameworks de teste para frontend.
+* Vitest: Framework de teste para frontend.
 
 # Requisitos do Projeto
 ## Requisitos Funcionais
