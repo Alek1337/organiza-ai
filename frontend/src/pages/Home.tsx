@@ -124,10 +124,6 @@ export default function HomePage() {
           <p className="text-lg mb-6">
             Uma maneira inteligente de organizar seus eventos
           </p>
-          <Input
-            placeholder="Pesquise eventos, categorias, lugares..."
-            className="max-w-md mx-auto"
-          />
         </section>
 
         <section className="mb-12">

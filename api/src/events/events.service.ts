@@ -128,9 +128,6 @@ export class EventsService {
       }
     })
 
-    if (event.createdBy.id !== user.id)
-      throw new ForbiddenException('Você não tem permissão para visualizar este evento');
-
     return event
   }
 
