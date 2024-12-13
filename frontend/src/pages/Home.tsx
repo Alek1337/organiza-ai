@@ -221,7 +221,6 @@ export default function HomePage() {
       </main>
 
       <footer className="bg-primary text-primary-foreground p-4 text-center mt-auto">
-        <p>Feito com amor por Alex</p>
       </footer>
     </div>
   );
