@@ -17,9 +17,8 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
       * Interagir com o chatbot para obter informações sobre os eventos.
 4. Chatbot Assistente
    * Suporte automatizado para:
-      * Responder dúvidas sobre o uso da plataforma.
-      * Auxiliar no gerenciamento de eventos (ex.: lembretes, alterações).
-      * Enviar atualizações e lembretes.
+      * Auxiliar no gerenciamento de eventos (ex.: Geração de convites personalizados).
+      * Enviar convites.
 5. Segurança e Privacidade
    * Criptografia para proteção de dados pessoais e de eventos.
    * Controle de acesso seguro para proteger informações de eventos e convidados.
@@ -57,7 +56,7 @@ Desenvolver uma plataforma de gerenciamento e controle de eventos que permita ao
 1. Cadastro e Gerenciamento de Usuários
    * RF1: Usuários podem criar, editar e excluir contas.
 2. Painel do Organizador
-   * RF2: Criar, editar, excluir e gerenciar eventos.
+   * RF2: Criar, excluir e gerenciar eventos.
    * RF3: Enviar convites e gerenciar presença dos convidados.
    * RF4: Enviar atualizações aos convidados.
 3. Painel do Participante
@@ -93,5 +92,5 @@ A metodologia ágil SCRUM foi utilizada, com ciclos de entrega contínua e foco 
   * Visualização e confirmação de presença em eventos.
 
 ### Chatbot Assistente e Segurança
-  * Implementação do chatbot para suporte aos usuários.
+  * Implementação do chatbot para geração de convites.
   * Segurança com autenticação e criptografia.
